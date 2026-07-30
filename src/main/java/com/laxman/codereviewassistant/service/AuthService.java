@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import com.laxman.codereviewassistant.dto.AuthResponse;
 import com.laxman.codereviewassistant.dto.LoginRequest;
 import com.laxman.codereviewassistant.dto.RegisterRequest;
+import com.laxman.codereviewassistant.entity.Role;
 import com.laxman.codereviewassistant.entity.User;
 import com.laxman.codereviewassistant.repository.UserRepository;
 import com.laxman.codereviewassistant.security.JwtUtil;
@@ -34,9 +35,10 @@ public class AuthService {
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole("DEVELOPER"); // default role, never taken from the request
+        user.setRole(Role.DEVELOPER); // default role, never taken from the request
 
         userRepository.save(user);
+
 
     }
 
