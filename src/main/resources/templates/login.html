@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sign in - CodeSense</title>
+  <link rel="stylesheet" href="/assets/css/style.css" />
+</head>
+<body>
+  <div class="auth-container">
+    <h1>Sign in</h1>
+    <p class="subtitle">Review pull requests automatically with AI.</p>
+
+    <div id="error" class="error-box hidden"></div>
+
+    <form id="login-form">
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="name@company.com" required />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="Enter your password" required />
+      </div>
+      <button type="submit" class="primary full" id="submit-btn">Sign in</button>
+    </form>
+
+    <p class="subtitle" style="margin-top: 16px;">
+      Don't have an account? <a class="link-text" href="/register.html">Create one</a>
+    </p>
+  </div>
+
+  <script src="/assets/js/api.js"></script>
+  <script>
+    const form = document.getElementById("login-form");
+    const errorBox = document.getElementById("error");
+    const submitBtn = document.getElementById("submit-btn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorBox.classList.add("hidden");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Signing in...";
+
+      try {
+        const data = await apiFetch("/auth/login", {
+          method: "POST",
+          body: JSON.stringify({
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value,
+          }),
+        });
+        setToken(data.token);
+        window.location.href = "/repos.html";
+      } catch (err) {
+        errorBox.textContent = err.message || "Invalid email or password.";
+        errorBox.classList.remove("hidden");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Sign in";
+      }
+    });
+  </script>
+</body>
+</html>

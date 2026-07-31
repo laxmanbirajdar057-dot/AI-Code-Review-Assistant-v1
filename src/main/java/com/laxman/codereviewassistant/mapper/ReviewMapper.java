@@ -29,6 +29,7 @@ public class ReviewMapper {
         dto.setSeverity(comment.getSeverity().name());
         dto.setMessage(comment.getMessage());
         dto.setResolved(comment.isResolved());
+        dto.setId(comment.getId());
         return dto;
     }
 }

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Review - CodeSense</title>
+  <link rel="stylesheet" href="/assets/css/style.css" />
+</head>
+<body>
+  <header class="topnav">
+    <div class="brand">
+      <span class="mark">CS</span>
+      CodeSense
+    </div>
+    <nav>
+      <a href="/repos.html">Repos</a>
+    </nav>
+    <button id="logout-btn">Sign out</button>
+  </header>
+
+  <div class="container">
+    <div class="row-between" style="margin-bottom: 6px;">
+      <div>
+        <a href="/repos.html" class="link-text" style="font-size: 12.5px;">&larr; Back to repos</a>
+        <h1 id="review-title" style="margin-top: 6px;">Review</h1>
+      </div>
+      <span id="status-badge" class="badge badge-status"></span>
+    </div>
+
+    <div id="error" class="error-box hidden"></div>
+    <div id="loading" class="empty-state">Loading review...</div>
+    <div id="comments-container"></div>
+  </div>
+
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/review.js"></script>
+</body>
+</html>

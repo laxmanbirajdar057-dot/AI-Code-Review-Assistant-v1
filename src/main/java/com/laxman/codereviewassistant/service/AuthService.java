@@ -8,6 +8,7 @@ import com.laxman.codereviewassistant.dto.LoginRequest;
 import com.laxman.codereviewassistant.dto.RegisterRequest;
 import com.laxman.codereviewassistant.entity.Role;
 import com.laxman.codereviewassistant.entity.User;
+import com.laxman.codereviewassistant.exception.InvalidCredentialsException;
 import com.laxman.codereviewassistant.repository.UserRepository;
 import com.laxman.codereviewassistant.security.JwtUtil;
 
@@ -43,14 +44,14 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+    User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
-        }
-
-        String token = jwtUtil.generateToken(user.getEmail());
-        return new AuthResponse(token, 3600_000);
+    if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        throw new InvalidCredentialsException("Invalid credentials");
     }
+
+    String token = jwtUtil.generateToken(user.getEmail());
+    return new AuthResponse(token, 3600_000);
+}
 }

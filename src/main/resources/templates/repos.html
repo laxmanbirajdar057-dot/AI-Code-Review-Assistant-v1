@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Repos - CodeSense</title>
+  <link rel="stylesheet" href="/assets/css/style.css" />
+</head>
+<body>
+  <header class="topnav">
+    <div class="brand">
+      <span class="mark">CS</span>
+      CodeSense
+    </div>
+    <nav>
+      <a href="/repos.html" class="active">Repos</a>
+    </nav>
+    <button id="logout-btn">Sign out</button>
+  </header>
+
+  <div class="container">
+    <div class="row-between" style="margin-bottom: 6px;">
+      <h1>Connected repos</h1>
+      <button class="primary" id="add-repo-btn">Add repo</button>
+    </div>
+    <p class="subtitle">AI reviews run automatically whenever a pull request is opened or updated.</p>
+
+    <div id="error" class="error-box hidden"></div>
+    <div id="repo-list" class="repo-list"></div>
+    <div id="empty-state" class="empty-state hidden">
+      <p>No repos connected yet.</p>
+      <p style="font-size: 12.5px;">Add a repo to start getting AI reviews on its pull requests.</p>
+    </div>
+  </div>
+
+  <!-- Add repo modal -->
+  <div id="add-repo-modal" class="modal-backdrop hidden">
+    <div class="modal">
+      <h2 style="margin-bottom: 4px;">Add a repo</h2>
+      <p class="subtitle">You'll get a webhook URL to paste into the repo's GitHub settings.</p>
+      <div id="add-repo-error" class="error-box hidden"></div>
+
+      <div id="add-repo-form">
+        <div class="field">
+          <label for="repo-url">Repository URL</label>
+          <input id="repo-url" type="text" placeholder="https://github.com/org/repo" />
+        </div>
+        <div class="field">
+          <label for="webhook-secret">Webhook secret</label>
+          <input id="webhook-secret" type="text" placeholder="A secret only you and GitHub know" />
+        </div>
+        <div class="row-between">
+          <button id="cancel-add-btn">Cancel</button>
+          <button class="primary" id="submit-add-btn">Add repo</button>
+        </div>
+      </div>
+
+      <div id="add-repo-success" class="hidden">
+        <p style="font-size: 13px; margin-bottom: 4px;">Repo added. Paste this into GitHub → Settings → Webhooks:</p>
+        <div class="webhook-box" id="webhook-url-display"></div>
+        <button class="primary full" id="done-btn" style="margin-top: 14px;">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- View PR review prompt modal -->
+  <div id="pr-modal" class="modal-backdrop hidden">
+    <div class="modal">
+      <h2 style="margin-bottom: 4px;">View a review</h2>
+      <p class="subtitle">Enter the pull request number for this repo.</p>
+      <div class="field">
+        <label for="pr-number">PR number</label>
+        <input id="pr-number" type="number" placeholder="42" />
+      </div>
+      <div class="row-between">
+        <button id="cancel-pr-btn">Cancel</button>
+        <button class="primary" id="go-pr-btn">View review</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/repos.js"></script>
+</body>
+</html>
