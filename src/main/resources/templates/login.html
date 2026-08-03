@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Sign in - CodeSense</title>
-  <link rel="stylesheet" href="/assets/css/style.css" />
+  <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
   <div class="auth-container">
@@ -19,21 +19,35 @@
       </div>
       <div class="field">
         <label for="password">Password</label>
-        <input id="password" type="password" placeholder="Enter your password" required />
+        <div class="password-wrap">
+          <input id="password" type="password" placeholder="Enter your password" required />
+          <button type="button" class="toggle-eye" data-target="password" aria-label="Show password">👁</button>
+        </div>
       </div>
       <button type="submit" class="primary full" id="submit-btn">Sign in</button>
     </form>
 
     <p class="subtitle" style="margin-top: 16px;">
-      Don't have an account? <a class="link-text" href="/register.html">Create one</a>
+      Don't have an account? <a class="link-text" href="/register">Create one</a>
     </p>
   </div>
 
-  <script src="/assets/js/api.js"></script>
+  <script src="/js/api.js"></script>
   <script>
     const form = document.getElementById("login-form");
     const errorBox = document.getElementById("error");
     const submitBtn = document.getElementById("submit-btn");
+
+    document.querySelectorAll(".toggle-eye").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const targetId = btn.getAttribute("data-target");
+        const input = document.getElementById(targetId);
+        const isHidden = input.type === "password";
+        input.type = isHidden ? "text" : "password";
+        btn.textContent = isHidden ? "🙈" : "👁";
+        btn.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+      });
+    });
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -50,7 +64,7 @@
           }),
         });
         setToken(data.token);
-        window.location.href = "/repos.html";
+        window.location.href = "/repos-page";
       } catch (err) {
         errorBox.textContent = err.message || "Invalid email or password.";
         errorBox.classList.remove("hidden");

@@ -101,7 +101,7 @@ containerEl.addEventListener("click", async (e) => {
 
 document.getElementById("logout-btn").addEventListener("click", () => {
   clearToken();
-  window.location.href = "/login.html";
+  window.location.href = "/login";
 });
 
 loadReview();

@@ -14,7 +14,7 @@ function clearToken() {
 
 function requireAuth() {
   if (!getToken()) {
-    window.location.href = "/login.html";
+    window.location.href = "/login";
   }
 }
 
@@ -27,7 +27,7 @@ async function apiFetch(path, options = {}) {
 
   if (response.status === 401) {
     clearToken();
-    window.location.href = "/login.html";
+    window.location.href = "/login";
     throw new Error("Session expired");
   }
 

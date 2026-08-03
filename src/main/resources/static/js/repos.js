@@ -9,7 +9,7 @@ let selectedRepoId = null;
 async function loadRepos() {
   errorEl.classList.add("hidden");
   try {
-    const repos = await apiFetch("/repos");
+    const repos = await apiFetch("/repos-page");
     renderRepos(repos);
   } catch (err) {
     errorEl.textContent = err.message || "Could not load repos.";
@@ -126,7 +126,7 @@ document.getElementById("go-pr-btn").addEventListener("click", () => {
 
 document.getElementById("logout-btn").addEventListener("click", () => {
   clearToken();
-  window.location.href = "/login.html";
+  window.location.href = "/login";
 });
 
 loadRepos();
