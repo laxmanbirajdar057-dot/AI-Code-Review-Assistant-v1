@@ -4,6 +4,7 @@ import com.laxman.codereviewassistant.dto.RegisterRepoRequest;
 import com.laxman.codereviewassistant.dto.RepoResponse;
 import com.laxman.codereviewassistant.entity.Repository;
 import com.laxman.codereviewassistant.entity.User;
+import com.laxman.codereviewassistant.exception.InvalidCredentialsException;
 import com.laxman.codereviewassistant.exception.RepoAlreadyExistsException;
 import com.laxman.codereviewassistant.repository.RepositoryRepository;
 import com.laxman.codereviewassistant.repository.UserRepository;
@@ -20,7 +21,7 @@ public class RepositoryService {
     private final UserRepository userRepository;
 
     public RepositoryService(RepositoryRepository repositoryRepository,
-                              UserRepository userRepository) {
+            UserRepository userRepository) {
         this.repositoryRepository = repositoryRepository;
         this.userRepository = userRepository;
     }
@@ -54,10 +55,10 @@ public class RepositoryService {
         User owner = getCurrentUser();
 
         Repository repo = repositoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Repository not found"));
+                .orElseThrow();
 
         if (!repo.getOwner().getId().equals(owner.getId())) {
-            throw new RuntimeException("Not authorized to delete this repository");
+            throw new RuntimeException("Not authorized");
         }
 
         repositoryRepository.deleteById(id);
@@ -66,7 +67,7 @@ public class RepositoryService {
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid or expired session"));
     }
 
     private String buildWebhookUrl() {
