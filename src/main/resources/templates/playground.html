@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Playground - CodeSense</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topnav">
+    <div class="brand">
+      <span class="mark">CS</span>
+      CodeSense
+    </div>
+    <nav>
+      <a href="/repos-page">Repos</a>
+      <a href="/playground-page" class="active">Playground</a>
+    </nav>
+    <button id="logout-btn">Sign out</button>
+  </header>
+
+  <div class="container" style="max-width: 1100px;">
+    <h1 style="margin-bottom: 4px;">Code playground</h1>
+    <p class="subtitle">Paste a snippet and get an instant AI review, explanation, or reformat — no repo needed.</p>
+
+    <div id="error" class="error-box hidden"></div>
+
+    <div class="playground-grid">
+      <div>
+        <div class="field">
+          <label for="language-select">Language (optional)</label>
+          <select id="language-select">
+            <option value="">Auto-detect</option>
+            <option value="java">Java</option>
+            <option value="javascript">JavaScript</option>
+            <option value="python">Python</option>
+            <option value="typescript">TypeScript</option>
+            <option value="sql">SQL</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="code-input">Code</label>
+          <textarea id="code-input" class="code-input" placeholder="Paste your code here..."></textarea>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="primary" data-mode="REVIEW" id="review-btn">Review</button>
+          <button data-mode="EXPLAIN" id="explain-btn">Explain</button>
+          <button data-mode="FORMAT" id="format-btn">Format</button>
+        </div>
+      </div>
+
+      <div>
+        <label>Result</label>
+        <div id="result-panel" class="result-panel">
+          <p class="empty-hint">Paste code on the left and pick an action to see the result here.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/playground.js"></script>
+</body>
+</html>

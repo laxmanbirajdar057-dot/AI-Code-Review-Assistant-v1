@@ -30,4 +30,9 @@ public class ViewController {
     public String review() {
         return "review";
     }
+
+    @GetMapping("/playground-page")
+    public String playground() {
+        return "playground";
+    }
 }

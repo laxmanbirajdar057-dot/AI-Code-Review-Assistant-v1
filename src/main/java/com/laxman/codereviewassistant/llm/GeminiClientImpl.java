@@ -1,18 +1,19 @@
 package com.laxman.codereviewassistant.llm;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laxman.codereviewassistant.entity.Review;
 import com.laxman.codereviewassistant.entity.ReviewComment;
 import com.laxman.codereviewassistant.entity.Severity;
 import com.laxman.codereviewassistant.util.DiffChunk;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @Component
 public class GeminiClientImpl implements LlmClient {
@@ -82,6 +83,33 @@ public class GeminiClientImpl implements LlmClient {
         } catch (Exception e) {
             // Fail this chunk without failing the whole review — return no comments for it
             return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public String complete(String prompt) {
+        Map<String, Object> requestBody = Map.of(
+                "contents", List.of(
+                        Map.of("parts", List.of(
+                                Map.of("text", prompt)
+                        ))
+                ),
+                "generationConfig", Map.of(
+                        "temperature", 0.2
+                )
+        );
+
+        String rawResponse = webClient.post()
+                .uri("/models/{model}:generateContent?key={apiKey}", MODEL, apiKey)
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+
+        try {
+            return extractMessageContent(rawResponse);
+        } catch (Exception e) {
+            throw new RuntimeException("Gemini returned an unexpected response shape", e);
         }
     }
 

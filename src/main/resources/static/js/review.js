@@ -8,7 +8,11 @@ const titleEl = document.getElementById("review-title");
 const statusBadgeEl = document.getElementById("status-badge");
 const errorEl = document.getElementById("error");
 const loadingEl = document.getElementById("loading");
+const statsBarEl = document.getElementById("stats-bar");
 const containerEl = document.getElementById("comments-container");
+
+let allComments = [];
+let activeFilter = "ALL";
 
 titleEl.textContent = `Pull request #${prNumber}`;
 
@@ -17,7 +21,9 @@ async function loadReview() {
     const review = await apiFetch(`/reviews/${repoId}/${prNumber}`);
     loadingEl.classList.add("hidden");
     renderStatus(review.status);
-    renderComments(review.comments || []);
+    allComments = review.comments || [];
+    renderStats(allComments);
+    renderComments(filteredComments());
   } catch (err) {
     loadingEl.classList.add("hidden");
     errorEl.textContent = err.message || "Could not load this review.";
@@ -36,11 +42,68 @@ function renderStatus(status) {
   }
 }
 
+function renderStats(comments) {
+  if (comments.length === 0) {
+    statsBarEl.classList.add("hidden");
+    return;
+  }
+
+  const counts = { HIGH: 0, MEDIUM: 0, LOW: 0 };
+  let resolvedCount = 0;
+  comments.forEach((c) => {
+    const sev = (c.severity || "").toUpperCase();
+    if (counts[sev] !== undefined) counts[sev]++;
+    if (c.resolved) resolvedCount++;
+  });
+
+  const filters = [
+    { key: "ALL", label: `All (${comments.length})` },
+    { key: "HIGH", label: `High (${counts.HIGH})` },
+    { key: "MEDIUM", label: `Medium (${counts.MEDIUM})` },
+    { key: "LOW", label: `Low (${counts.LOW})` },
+    { key: "UNRESOLVED", label: `Unresolved (${comments.length - resolvedCount})` },
+  ];
+
+  statsBarEl.classList.remove("hidden");
+  statsBarEl.innerHTML = `
+    <div class="stats-cards">
+      <div class="stat-card"><span class="stat-value">${comments.length}</span><span class="stat-label">Total issues</span></div>
+      <div class="stat-card"><span class="stat-value" style="color: var(--danger)">${counts.HIGH}</span><span class="stat-label">High severity</span></div>
+      <div class="stat-card"><span class="stat-value">${resolvedCount}</span><span class="stat-label">Resolved</span></div>
+    </div>
+    <div class="filter-tabs">
+      ${filters
+        .map(
+          (f) => `<button class="filter-tab${f.key === activeFilter ? " active" : ""}" data-filter="${f.key}">${f.label}</button>`
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function filteredComments() {
+  if (activeFilter === "ALL") return allComments;
+  if (activeFilter === "UNRESOLVED") return allComments.filter((c) => !c.resolved);
+  return allComments.filter((c) => (c.severity || "").toUpperCase() === activeFilter);
+}
+
+statsBarEl.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-filter]");
+  if (!btn) return;
+  activeFilter = btn.getAttribute("data-filter");
+  renderStats(allComments);
+  renderComments(filteredComments());
+});
+
 function renderComments(comments) {
   if (comments.length === 0) {
+    const message =
+      allComments.length === 0
+        ? { title: "No comments on this review yet.", sub: "If the review just triggered, check back shortly." }
+        : { title: "No issues match this filter.", sub: "Try a different tab above." };
     containerEl.innerHTML = `<div class="empty-state">
-      <p>No comments on this review yet.</p>
-      <p style="font-size: 12.5px;">If the review just triggered, check back shortly.</p>
+      <p>${message.title}</p>
+      <p style="font-size: 12.5px;">${message.sub}</p>
     </div>`;
     return;
   }

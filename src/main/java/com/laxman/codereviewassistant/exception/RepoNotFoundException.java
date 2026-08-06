@@ -1,13 +1,16 @@
 package com.laxman.codereviewassistant.exception;
 
-/**
- * RepoNotFoundException
- */
-public class RepoNotFoundException {
+public class RepoNotFoundException extends RuntimeException {
 
-    public String getMessage() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getMessage'");
+    public RepoNotFoundException() {
+        super("Repository not found");
     }
 
+    public RepoNotFoundException(String message) {
+        super(message);
+    }
+
+    public RepoNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

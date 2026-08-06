@@ -32,6 +32,24 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(ex.getMessage(), 404, null));
     }
 
+    @ExceptionHandler(InvalidSnippetModeException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidSnippetMode(InvalidSnippetModeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(ex.getMessage(), 400, null));
+    }
+
+    @ExceptionHandler(RepoNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleRepoNotFound(RepoNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(ex.getMessage(), 404, null));
+    }
+
+    @ExceptionHandler(NotAuthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleNotAuthorized(NotAuthorizedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(ex.getMessage(), 403, null));
+    }
+
     @ExceptionHandler(InvalidWebhookSignatureException.class)
     public ResponseEntity<ErrorResponse> handleInvalidSignature(InvalidWebhookSignatureException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

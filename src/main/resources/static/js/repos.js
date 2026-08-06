@@ -9,7 +9,7 @@ let selectedRepoId = null;
 async function loadRepos() {
   errorEl.classList.add("hidden");
   try {
-    const repos = await apiFetch("/repos-page");
+    const repos = await apiFetch("/repos");
     renderRepos(repos);
   } catch (err) {
     errorEl.textContent = err.message || "Could not load repos.";
@@ -18,6 +18,8 @@ async function loadRepos() {
 }
 
 function renderRepos(repos) {
+  document.getElementById("repos-heading").textContent =
+    repos.length === 0 ? "Connected repos" : `Connected repos (${repos.length})`;
   repoListEl.innerHTML = "";
   emptyStateEl.classList.toggle("hidden", repos.length > 0);
 
@@ -25,9 +27,12 @@ function renderRepos(repos) {
     const row = document.createElement("div");
     row.className = "repo-row";
     row.innerHTML = `
-      <div>
-        <div class="repo-url">${escapeHtml(repo.repoUrl)}</div>
-        <div class="repo-meta">${escapeHtml(repo.webhookUrl)}</div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span class="repo-icon">&lt;/&gt;</span>
+        <div>
+          <div class="repo-url">${escapeHtml(repo.repoUrl)}</div>
+          <div class="repo-meta">${escapeHtml(repo.webhookUrl)}</div>
+        </div>
       </div>
       <div style="display: flex; gap: 8px;">
         <button data-action="view" data-id="${repo.id}">View review</button>

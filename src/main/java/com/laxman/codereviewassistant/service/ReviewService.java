@@ -39,7 +39,7 @@ public class ReviewService {
                 .orElseThrow(() -> new ReviewNotFoundException("No review found for this repo/PR"));
 
         if (!review.getRepository().getOwner().getId().equals(currentUser.getId())) {
-            throw new RuntimeException(new NotAuthorizedException());
+            throw new NotAuthorizedException();
         }
 
         List<ReviewComment> comments = reviewCommentRepository.findByReviewId(review.getId());

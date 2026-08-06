@@ -51,8 +51,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/register", "/repos-page", "/review-page",
-                                "/css/**", "/js/**", "/favicon.ico")
+                        .requestMatchers(
+                                "/", "/login", "/register", "/repos-page", "/review-page", "/playground-page",
+                                "/css/**", "/js/**", "/favicon.ico"
+                        )
                         .permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/webhooks/**").permitAll()

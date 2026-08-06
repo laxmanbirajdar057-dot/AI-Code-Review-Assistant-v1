@@ -1,18 +1,21 @@
 package com.laxman.codereviewassistant.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
 import com.laxman.codereviewassistant.dto.RegisterRepoRequest;
 import com.laxman.codereviewassistant.dto.RepoResponse;
 import com.laxman.codereviewassistant.entity.Repository;
 import com.laxman.codereviewassistant.entity.User;
 import com.laxman.codereviewassistant.exception.InvalidCredentialsException;
+import com.laxman.codereviewassistant.exception.NotAuthorizedException;
 import com.laxman.codereviewassistant.exception.RepoAlreadyExistsException;
+import com.laxman.codereviewassistant.exception.RepoNotFoundException;
 import com.laxman.codereviewassistant.repository.RepositoryRepository;
 import com.laxman.codereviewassistant.repository.UserRepository;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class RepositoryService {
@@ -55,10 +58,10 @@ public class RepositoryService {
         User owner = getCurrentUser();
 
         Repository repo = repositoryRepository.findById(id)
-                .orElseThrow();
+                .orElseThrow(RepoNotFoundException::new);
 
         if (!repo.getOwner().getId().equals(owner.getId())) {
-            throw new RuntimeException("Not authorized");
+            throw new NotAuthorizedException("Not authorized to delete this repository");
         }
 
         repositoryRepository.deleteById(id);
