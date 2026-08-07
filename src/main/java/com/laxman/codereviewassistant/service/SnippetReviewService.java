@@ -19,12 +19,13 @@ public class SnippetReviewService {
             You are a senior code reviewer. Review the following code for bugs,
             security issues, performance problems, and style issues.
 
+            %s
+
             Respond in markdown. For each issue found, use this format:
             **[SEVERITY]** line X — explanation and suggested fix.
 
             If there are no issues, say so briefly and note anything done well.
 
-            Language: %s
             Code:
             ```
             %s
@@ -37,7 +38,8 @@ public class SnippetReviewService {
             Keep it concise but complete — cover the overall purpose first,
             then walk through the key logic.
 
-            Language: %s
+            %s
+
             Code:
             ```
             %s
@@ -49,30 +51,47 @@ public class SnippetReviewService {
             its language (consistent indentation, spacing, naming conventions,
             brace placement). Do not change behavior.
 
+            %s
+
             Respond with ONLY the reformatted code in a single fenced code block,
             no explanation before or after.
 
-            Language: %s
             Code:
             ```
             %s
             ```
             """;
 
-    public SnippetResponse process(SnippetRequest request) {
-        String language = (request.getLanguage() == null || request.getLanguage().isBlank())
-                ? "unspecified"
-                : request.getLanguage();
+    // Used when the user didn't pick a language ("Auto-detect"): the model has to
+    // identify it from the code itself and say so, rather than silently guessing.
+    private static final String AUTO_DETECT_INSTRUCTION =
+            "The language was not specified — first identify the programming language "
+            + "from the code itself and state it as \"**Detected language:** <name>\" on its own "
+            + "line before anything else.";
 
-        String prompt = switch (request.getMode().toUpperCase()) {
-            case "REVIEW" -> REVIEW_PROMPT.formatted(language, request.getCode());
-            case "EXPLAIN" -> EXPLAIN_PROMPT.formatted(language, request.getCode());
-            case "FORMAT" -> FORMAT_PROMPT.formatted(language, request.getCode());
+    private static final String KNOWN_LANGUAGE_INSTRUCTION = "Language: %s";
+
+    public SnippetResponse process(SnippetRequest request) {
+        boolean languageProvided = request.getLanguage() != null && !request.getLanguage().isBlank();
+        String languageInstruction = languageProvided
+                ? KNOWN_LANGUAGE_INSTRUCTION.formatted(request.getLanguage())
+                : AUTO_DETECT_INSTRUCTION;
+
+        String mode = request.getMode().toUpperCase();
+        String prompt = switch (mode) {
+            case "REVIEW" -> REVIEW_PROMPT.formatted(languageInstruction, request.getCode());
+            case "EXPLAIN" -> EXPLAIN_PROMPT.formatted(languageInstruction, request.getCode());
+            // FORMAT must return only a code block, so auto-detect there is implicit
+            // (the model still has to infer the language to know how to format it),
+            // no "Detected language" line since that would break the fenced-code-only contract.
+            case "FORMAT" -> FORMAT_PROMPT.formatted(
+                    languageProvided ? languageInstruction : "Language: auto-detect from the code below.",
+                    request.getCode());
             default -> throw new InvalidSnippetModeException(
                     "Unknown mode '" + request.getMode() + "'. Use REVIEW, EXPLAIN, or FORMAT.");
         };
 
         String result = llmClient.complete(prompt);
-        return new SnippetResponse(request.getMode().toUpperCase(), result);
+        return new SnippetResponse(mode, result);
     }
 }
