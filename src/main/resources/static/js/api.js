@@ -35,7 +35,7 @@ async function apiFetch(path, options = {}) {
     let message = "Request failed";
     try {
       const body = await response.json();
-      message = body.message || message;
+      message = body.error || body.message || message;
     } catch (_) {}
     throw new Error(message);
   }

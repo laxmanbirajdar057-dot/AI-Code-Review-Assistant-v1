@@ -1,25 +1,36 @@
 package com.laxman.codereviewassistant.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.stereotype.Component;
-
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtil {
 
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    private final long EXPIRATION_MS = 3600_000; // 1 hour
+    private final Key key;
+    private final long expirationMs;
+
+    public JwtUtil(@Value("${jwt.secret}") String secret,
+                    @Value("${jwt.expiration.ms}") long expirationMs) {
+        // A fixed, config-driven key -- generating a random one at startup
+        // (the old approach) invalidates every previously issued token on
+        // every restart, which looks exactly like "sessions expiring early".
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.expirationMs = expirationMs;
+    }
 
     public String generateToken(String email) {
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key)
                 .compact();
     }
