@@ -37,6 +37,12 @@ public class AuthService {
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        // Self-registration only ever creates DEVELOPER accounts. ADMIN and
+        // VIEWER are provisioned manually (direct DB update) for now — there's
+        // no self-service path to elevate a role, which is intentional: letting
+        // users grant themselves ADMIN via the register endpoint would defeat
+        // the RBAC enforced in SecurityConfig. Revisit with an admin-only invite
+        // endpoint if this becomes a real product.
         user.setRole(Role.DEVELOPER);
 
         userRepository.save(user);

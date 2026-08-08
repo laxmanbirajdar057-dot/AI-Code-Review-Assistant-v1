@@ -2,6 +2,7 @@ package com.laxman.codereviewassistant.service;
 
 import java.util.List;
 
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -38,20 +39,43 @@ public class ReviewService {
         Review review = reviewRepository.findByRepositoryIdAndPrNumber(repoId, prNumber)
                 .orElseThrow(() -> new ReviewNotFoundException("No review found for this repo/PR"));
 
-        if (!review.getRepository().getOwner().getId().equals(currentUser.getId())) {
-            throw new NotAuthorizedException();
-        }
+        assertOwnerOrAdmin(review, currentUser);
 
         List<ReviewComment> comments = reviewCommentRepository.findByReviewId(review.getId());
         return ReviewMapper.toResponse(review, comments);
     }
 
     public void resolveComment(Long commentId, boolean resolved) {
+        User currentUser = getCurrentUser();
+
         ReviewComment comment = reviewCommentRepository.findById(commentId)
                 .orElseThrow(() -> new ReviewNotFoundException("Comment not found"));
 
+        // Fix: previously this method updated the comment with no ownership check at
+        // all, letting any authenticated user resolve any other user's review
+        // comments (IDOR). Walk the same relationship chain getReview() uses.
+        assertOwnerOrAdmin(comment.getReview(), currentUser);
+
         comment.setResolved(resolved);
         reviewCommentRepository.save(comment);
+    }
+
+    /**
+     * ADMIN accounts can act on any review; everyone else must own the
+     * repository the review belongs to.
+     */
+    private void assertOwnerOrAdmin(Review review, User currentUser) {
+        boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch("ROLE_ADMIN"::equals);
+
+        if (isAdmin) {
+            return;
+        }
+
+        if (!review.getRepository().getOwner().getId().equals(currentUser.getId())) {
+            throw new NotAuthorizedException();
+        }
     }
 
     private User getCurrentUser() {

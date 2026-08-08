@@ -4,6 +4,7 @@ import com.laxman.codereviewassistant.entity.Repository;
 import com.laxman.codereviewassistant.entity.WebhookEvent;
 import com.laxman.codereviewassistant.repository.RepositoryRepository;
 import com.laxman.codereviewassistant.repository.WebhookEventRepository;
+import com.laxman.codereviewassistant.security.EncryptionService;
 import com.laxman.codereviewassistant.security.WebhookSignatureValidator;
 import com.laxman.codereviewassistant.service.ReviewWorkerService;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,7 @@ class WebhookControllerTest {
     private WebhookEventRepository webhookEventRepository;
     private WebhookSignatureValidator signatureValidator;
     private ReviewWorkerService reviewWorkerService;
+    private EncryptionService encryptionService;
     private MockMvc mockMvc;
 
     private static final String REPO_URL = "https://github.com/laxman/demo-repo";
@@ -40,9 +42,15 @@ class WebhookControllerTest {
         webhookEventRepository = mock(WebhookEventRepository.class);
         signatureValidator = mock(WebhookSignatureValidator.class);
         reviewWorkerService = mock(ReviewWorkerService.class);
+        encryptionService = mock(EncryptionService.class);
+        // treat "encrypted" secrets as identity for these tests — only the
+        // signature-validation call path is under test here, not encryption itself
+        // (that's covered separately by EncryptionServiceTest)
+        when(encryptionService.decrypt(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
 
         WebhookController controller = new WebhookController(
-                repositoryRepository, webhookEventRepository, signatureValidator, reviewWorkerService);
+                repositoryRepository, webhookEventRepository, signatureValidator, reviewWorkerService,
+                encryptionService);
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new com.laxman.codereviewassistant.exception.GlobalExceptionHandler())

@@ -18,6 +18,7 @@ import com.laxman.codereviewassistant.entity.WebhookEvent;
 import com.laxman.codereviewassistant.exception.InvalidWebhookSignatureException;
 import com.laxman.codereviewassistant.repository.RepositoryRepository;
 import com.laxman.codereviewassistant.repository.WebhookEventRepository;
+import com.laxman.codereviewassistant.security.EncryptionService;
 import com.laxman.codereviewassistant.security.WebhookSignatureValidator;
 import com.laxman.codereviewassistant.service.ReviewWorkerService;
 
@@ -29,16 +30,19 @@ public class WebhookController {
     private final WebhookEventRepository webhookEventRepository;
     private final WebhookSignatureValidator signatureValidator;
     private final ReviewWorkerService reviewWorkerService;
+    private final EncryptionService encryptionService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public WebhookController(RepositoryRepository repositoryRepository,
                               WebhookEventRepository webhookEventRepository,
                               WebhookSignatureValidator signatureValidator,
-                              ReviewWorkerService reviewWorkerService) {
+                              ReviewWorkerService reviewWorkerService,
+                              EncryptionService encryptionService) {
         this.repositoryRepository = repositoryRepository;
         this.webhookEventRepository = webhookEventRepository;
         this.signatureValidator = signatureValidator;
         this.reviewWorkerService = reviewWorkerService;
+        this.encryptionService = encryptionService;
     }
 
     @PostMapping("/github")
@@ -55,7 +59,10 @@ public class WebhookController {
                 .orElseThrow(() -> new InvalidWebhookSignatureException("Unknown repository"));
 
         // Step 2: verify the signature using THIS repo's secret
-        boolean valid = signatureValidator.isValid(payload, repo.getWebhookSecret(), signatureHeader);
+        // (webhookSecret is stored encrypted at rest — decrypt it here, in memory,
+        // just for the HMAC comparison; it's never persisted or logged in plaintext)
+        String decryptedSecret = encryptionService.decrypt(repo.getWebhookSecret());
+        boolean valid = signatureValidator.isValid(payload, decryptedSecret, signatureHeader);
         if (!valid) {
             throw new InvalidWebhookSignatureException("Invalid webhook signature");
         }

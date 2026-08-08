@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -53,6 +54,16 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Fix: Role (ADMIN/DEVELOPER/VIEWER) was stored on User but never
+                // actually enforced anywhere — every authenticated user had identical
+                // access. Rules below match the permission matrix:
+                //   ADMIN      — full access everywhere (ownership bypass is handled
+                //                 in the service layer, see RepositoryService /
+                //                 ReviewService)
+                //   DEVELOPER  — can register/delete repos and resolve comments, but
+                //                 only for repos/reviews they own (checked in services)
+                //   VIEWER     — read-only: can list/view but not mutate; can still
+                //                 use the playground since it touches no stored data
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/", "/login", "/register", "/repos-page", "/review-page", "/playground-page",
@@ -61,6 +72,16 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/webhooks/**").permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/repos").hasAnyRole("ADMIN", "DEVELOPER")
+                        .requestMatchers(HttpMethod.DELETE, "/repos/**").hasAnyRole("ADMIN", "DEVELOPER")
+                        .requestMatchers(HttpMethod.GET, "/repos/**").hasAnyRole("ADMIN", "DEVELOPER", "VIEWER")
+
+                        .requestMatchers(HttpMethod.PATCH, "/reviews/comments/**").hasAnyRole("ADMIN", "DEVELOPER")
+                        .requestMatchers(HttpMethod.GET, "/reviews/**").hasAnyRole("ADMIN", "DEVELOPER", "VIEWER")
+
+                        .requestMatchers("/snippets/**").hasAnyRole("ADMIN", "DEVELOPER", "VIEWER")
+
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
