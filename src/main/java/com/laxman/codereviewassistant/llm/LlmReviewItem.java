@@ -7,8 +7,8 @@ public class LlmReviewItem {
     private Integer line;
     private String severity; // "HIGH", "MEDIUM", "LOW"
     private String message;
+
     public String getCategory() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getCategory'");
+        return severity != null ? severity : "UNKNOWN";
     }
 }
