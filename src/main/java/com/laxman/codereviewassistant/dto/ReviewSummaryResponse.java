@@ -1,16 +1,16 @@
 package com.laxman.codereviewassistant.dto;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-public class ReviewResponse {
-    private Long reviewId;
+@AllArgsConstructor
+public class ReviewSummaryResponse {
     private Integer prNumber;
-    private String prTitle;
     private String status;
     private Integer overallScore;
     private String riskLevel;
-    private List<ReviewCommentResponse> comments;
+    private LocalDateTime createdAt;
 }

@@ -9,4 +9,5 @@ public class RepoResponse {
     private Long id;
     private String repoUrl;
     private String webhookUrl;
+    private boolean hasGithubToken;
 }

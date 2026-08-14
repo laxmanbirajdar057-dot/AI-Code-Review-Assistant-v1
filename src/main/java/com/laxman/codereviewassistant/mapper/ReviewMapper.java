@@ -13,7 +13,11 @@ public class ReviewMapper {
     public static ReviewResponse toResponse(Review review, List<ReviewComment> comments) {
         ReviewResponse response = new ReviewResponse();
         response.setReviewId(review.getId());
+        response.setPrNumber(review.getPullRequest().getPrNumber());
+        response.setPrTitle(review.getPullRequest().getTitle());
         response.setStatus(review.getStatus().name());
+        response.setOverallScore(review.getOverallScore());
+        response.setRiskLevel(review.getRiskLevel() != null ? review.getRiskLevel().name() : null);
         response.setComments(
             comments.stream()
                 .map(ReviewMapper::toCommentResponse)
@@ -27,6 +31,8 @@ public class ReviewMapper {
         dto.setFile(comment.getFileName());
         dto.setLine(comment.getLineNumber());
         dto.setSeverity(comment.getSeverity().name());
+        dto.setCategory(comment.getCategory() != null ? comment.getCategory().name() : null);
+        dto.setSource(comment.getSource() != null ? comment.getSource().name() : null);
         dto.setMessage(comment.getMessage());
         dto.setResolved(comment.isResolved());
         dto.setId(comment.getId());

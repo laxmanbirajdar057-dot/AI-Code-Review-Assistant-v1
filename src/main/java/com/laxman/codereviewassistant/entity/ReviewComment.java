@@ -33,6 +33,11 @@ public class ReviewComment {
     @Enumerated(EnumType.STRING)
     private Severity severity; // LOW, MEDIUM, HIGH
 
+    @Enumerated(EnumType.STRING)
+    private IssueCategory category;
+
+    @Enumerated(EnumType.STRING)
+    private CommentSource source;
 
     @Column(length = 1000) // limit the length of the comment message
     private String message;

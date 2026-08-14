@@ -15,6 +15,8 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.laxman.codereviewassistant.entity.CommentSource;
+import com.laxman.codereviewassistant.entity.IssueCategory;
 import com.laxman.codereviewassistant.entity.Review;
 import com.laxman.codereviewassistant.entity.ReviewComment;
 import com.laxman.codereviewassistant.entity.Severity;
@@ -47,7 +49,9 @@ public class GeminiClientImpl implements LlmClient {
             no markdown fences, no explanation text:
             {
               "issues": [
-                { "line": <int>, "severity": "HIGH|MEDIUM|LOW", "message": "<string>" }
+                { "line": <int>, "severity": "CRITICAL|HIGH|MEDIUM|LOW|INFO",
+                  "category": "SECURITY|QUALITY|MAINTAINABILITY|PERFORMANCE|RELIABILITY",
+                  "message": "<string>" }
               ]
             }
 
@@ -197,12 +201,38 @@ public class GeminiClientImpl implements LlmClient {
             comment.setReview(review);
             comment.setFileName(chunk.getFileName());
             comment.setLineNumber(item.getLine());
-            comment.setSeverity(Severity.valueOf(item.getSeverity()));
+            comment.setSeverity(parseSeverity(item.getSeverity()));
+            comment.setCategory(parseCategory(item.getCategory()));
+            comment.setSource(CommentSource.AI);
             comment.setMessage(item.getMessage());
             comment.setResolved(false);
             comments.add(comment);
         }
 
         return comments;
+    }
+
+    // The LLM is instructed to return one of our exact enum names, but model
+    // output is never guaranteed — lowercase, extra whitespace, or an
+    // unexpected value would previously throw IllegalArgumentException out of
+    // Severity.valueOf() and silently drop the *entire chunk's* comments (the
+    // catch-all in review() would swallow it). Falling back to a safe default
+    // and logging keeps one malformed issue from costing the whole review.
+    private Severity parseSeverity(String raw) {
+        try {
+            return Severity.valueOf(raw == null ? "" : raw.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("Gemini returned unrecognized severity '{}', defaulting to MEDIUM", raw);
+            return Severity.MEDIUM;
+        }
+    }
+
+    private IssueCategory parseCategory(String raw) {
+        try {
+            return IssueCategory.valueOf(raw == null ? "" : raw.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("Gemini returned unrecognized category '{}', defaulting to QUALITY", raw);
+            return IssueCategory.QUALITY;
+        }
     }
 }

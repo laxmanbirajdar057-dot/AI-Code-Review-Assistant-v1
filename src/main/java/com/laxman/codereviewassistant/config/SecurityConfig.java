@@ -1,7 +1,9 @@
 package com.laxman.codereviewassistant.config;
 
+import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,10 +26,14 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final List<String> allowedOrigins;
 
-    public SecurityConfig(JwtFilter jwtFilter, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
+    public SecurityConfig(JwtFilter jwtFilter,
+            JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+            @Value("${app.allowed-origins}") String allowedOrigins) {
         this.jwtFilter = jwtFilter;
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+        this.allowedOrigins = Arrays.asList(allowedOrigins.split(","));
     }
 
     @Bean
@@ -38,7 +44,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*")); // fine for local dev; restrict later
+        // Fix: was setAllowedOriginPatterns(List.of("*")) combined with
+        // allowCredentials(true) — browsers reject a wildcard origin alongside
+        // credentialed requests, and Spring itself rejects "*" here once you're
+        // not using patterns loosely. Origins now come from app.allowed-origins
+        // (APP_ALLOWED_ORIGINS env var, comma-separated), defaulting to local
+        // dev ports only.
+        config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -59,7 +71,7 @@ public class SecurityConfig {
                 // access. Rules below match the permission matrix:
                 //   ADMIN      — full access everywhere (ownership bypass is handled
                 //                 in the service layer, see RepositoryService /
-                //                 ReviewService)
+                //                 ReviewService / ReviewAnalyticsService)
                 //   DEVELOPER  — can register/delete repos and resolve comments, but
                 //                 only for repos/reviews they own (checked in services)
                 //   VIEWER     — read-only: can list/view but not mutate; can still
@@ -72,6 +84,7 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/webhooks/**").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/repos").hasAnyRole("ADMIN", "DEVELOPER")
                         .requestMatchers(HttpMethod.DELETE, "/repos/**").hasAnyRole("ADMIN", "DEVELOPER")

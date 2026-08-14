@@ -6,4 +6,5 @@ import lombok.Data;
 public class RegisterRepoRequest {
     private String repoUrl;
     private String webhookSecret;
+    private String githubToken;
 }

@@ -31,6 +31,15 @@ public class Review {
 
     private Integer prNumber; // pull request number
 
+    @ManyToOne
+    @JoinColumn(name = "pull_request_id")
+    private PullRequest pullRequest;
+
+    private Integer overallScore;
+
+    @Enumerated(EnumType.STRING)
+    private RiskLevel riskLevel;
+
     @Enumerated(EnumType.STRING)
     private ReviewStatus status; // PENDING, IN_PROGRESS, COMPLETED, REJECTED
    

@@ -25,6 +25,8 @@ public class Repository {
     @Column(nullable = false)
     private String webhookSecret; // encrypted before saving
 
+    private String githubToken;
+
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;

@@ -46,10 +46,14 @@ async function apiFetch(path, options = {}) {
 
 function severityBadgeClass(severity) {
   switch ((severity || "").toUpperCase()) {
+    case "CRITICAL":
+      return "badge badge-critical";
     case "HIGH":
       return "badge badge-high";
     case "MEDIUM":
       return "badge badge-medium";
+    case "INFO":
+      return "badge badge-info";
     default:
       return "badge badge-low";
   }

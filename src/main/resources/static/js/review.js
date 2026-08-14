@@ -10,6 +10,7 @@ const errorEl = document.getElementById("error");
 const loadingEl = document.getElementById("loading");
 const statsBarEl = document.getElementById("stats-bar");
 const containerEl = document.getElementById("comments-container");
+const scoreBadgeEl = document.getElementById("score-badge");
 
 let allComments = [];
 let activeFilter = "ALL";
@@ -21,6 +22,7 @@ async function loadReview() {
     const review = await apiFetch(`/reviews/${repoId}/${prNumber}`);
     loadingEl.classList.add("hidden");
     renderStatus(review.status);
+    renderScore(review.overallScore, review.riskLevel);
     allComments = review.comments || [];
     renderStats(allComments);
     renderComments(filteredComments());
@@ -29,6 +31,16 @@ async function loadReview() {
     errorEl.textContent = err.message || "Could not load this review.";
     errorEl.classList.remove("hidden");
   }
+}
+
+function renderScore(overallScore, riskLevel) {
+  if (overallScore === null || overallScore === undefined) {
+    scoreBadgeEl.classList.add("hidden");
+    return;
+  }
+  scoreBadgeEl.classList.remove("hidden");
+  scoreBadgeEl.textContent = `Score ${overallScore}/100 · ${riskLevel} risk`;
+  scoreBadgeEl.className = "badge " + (riskLevel === "HIGH" ? "badge-critical" : riskLevel === "MEDIUM" ? "badge-medium" : "badge-low");
 }
 
 function renderStatus(status) {
@@ -48,7 +60,7 @@ function renderStats(comments) {
     return;
   }
 
-  const counts = { HIGH: 0, MEDIUM: 0, LOW: 0 };
+  const counts = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0, INFO: 0 };
   let resolvedCount = 0;
   comments.forEach((c) => {
     const sev = (c.severity || "").toUpperCase();
@@ -58,9 +70,11 @@ function renderStats(comments) {
 
   const filters = [
     { key: "ALL", label: `All (${comments.length})` },
+    { key: "CRITICAL", label: `Critical (${counts.CRITICAL})` },
     { key: "HIGH", label: `High (${counts.HIGH})` },
     { key: "MEDIUM", label: `Medium (${counts.MEDIUM})` },
     { key: "LOW", label: `Low (${counts.LOW})` },
+    { key: "INFO", label: `Info (${counts.INFO})` },
     { key: "UNRESOLVED", label: `Unresolved (${comments.length - resolvedCount})` },
   ];
 
@@ -68,7 +82,7 @@ function renderStats(comments) {
   statsBarEl.innerHTML = `
     <div class="stats-cards">
       <div class="stat-card"><span class="stat-value">${comments.length}</span><span class="stat-label">Total issues</span></div>
-      <div class="stat-card"><span class="stat-value" style="color: var(--danger)">${counts.HIGH}</span><span class="stat-label">High severity</span></div>
+      <div class="stat-card"><span class="stat-value" style="color: var(--danger)">${counts.CRITICAL + counts.HIGH}</span><span class="stat-label">Critical + High</span></div>
       <div class="stat-card"><span class="stat-value">${resolvedCount}</span><span class="stat-label">Resolved</span></div>
     </div>
     <div class="filter-tabs">

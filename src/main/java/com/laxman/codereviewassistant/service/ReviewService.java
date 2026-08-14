@@ -36,7 +36,8 @@ public class ReviewService {
     public ReviewResponse getReview(Long repoId, Integer prNumber) {
         User currentUser = getCurrentUser();
 
-        Review review = reviewRepository.findByRepositoryIdAndPrNumber(repoId, prNumber)
+        Review review = reviewRepository
+                .findFirstByPullRequestRepositoryIdAndPullRequestPrNumberOrderByCreatedAtDesc(repoId, prNumber)
                 .orElseThrow(() -> new ReviewNotFoundException("No review found for this repo/PR"));
 
         assertOwnerOrAdmin(review, currentUser);
@@ -73,7 +74,7 @@ public class ReviewService {
             return;
         }
 
-        if (!review.getRepository().getOwner().getId().equals(currentUser.getId())) {
+        if (!review.getPullRequest().getRepository().getOwner().getId().equals(currentUser.getId())) {
             throw new NotAuthorizedException();
         }
     }

@@ -14,7 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.laxman.codereviewassistant.dto.RegisterRepoRequest;
 import com.laxman.codereviewassistant.dto.RepoResponse;
+import com.laxman.codereviewassistant.dto.RepoStatisticsResponse;
+import com.laxman.codereviewassistant.dto.ReviewSummaryResponse;
 import com.laxman.codereviewassistant.service.RepositoryService;
+import com.laxman.codereviewassistant.service.ReviewAnalyticsService;
 
 import jakarta.validation.Valid;
 
@@ -23,9 +26,12 @@ import jakarta.validation.Valid;
 public class RepositoryController {
 
     private final RepositoryService repositoryService;
+    private final ReviewAnalyticsService reviewAnalyticsService;
 
-    public RepositoryController(RepositoryService repositoryService) {
+    public RepositoryController(RepositoryService repositoryService,
+                                 ReviewAnalyticsService reviewAnalyticsService) {
         this.repositoryService = repositoryService;
+        this.reviewAnalyticsService = reviewAnalyticsService;
     }
 
     @PostMapping
@@ -43,5 +49,18 @@ public class RepositoryController {
     public ResponseEntity<Void> deleteRepo(@PathVariable Long id) {
         repositoryService.deleteRepo(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // New: review history for this repo, newest first
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<List<ReviewSummaryResponse>> getReviewHistory(@PathVariable Long id) {
+        return ResponseEntity.ok(reviewAnalyticsService.getHistory(id));
+    }
+
+    // New: aggregate stats — avg score, critical issue count, most common
+    // issue category, and the full score trend
+    @GetMapping("/{id}/statistics")
+    public ResponseEntity<RepoStatisticsResponse> getStatistics(@PathVariable Long id) {
+        return ResponseEntity.ok(reviewAnalyticsService.getStatistics(id));
     }
 }

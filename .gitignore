@@ -1,35 +1,91 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
 
-### STS ###
-.apt_generated
+application-local.yml
+
+/*# =========================
+# Maven
+# =========================
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+
+# =========================
+# Environment Variables / Secrets
+# =========================
+.env
+.env.*
+!.env.example
+
+
+# =========================
+# Spring Boot Local Config
+# =========================
+application-local.yml
+application-local.yaml
+application-local.properties
+
+
+# =========================
+# Java / Build
+# =========================
+*.class
+*.log
+*.jar
+*.war
+*.ear
+
+
+# =========================
+# IntelliJ IDEA
+# =========================
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+
+# =========================
+# Eclipse / STS
+# =========================
 .classpath
-.factorypath
 .project
-.settings
+.settings/
+.factorypath
+.apt_generated
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
 
-### NetBeans ###
+# =========================
+# NetBeans
+# =========================
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
+
+# =========================
+# VS Code
+# =========================
 .vscode/
 
-application-local.yml
+
+
+# =========================
+# OS Generated Files
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+
+# =========================
+# Temporary / Backup Files
+# =========================
+*.tmp
+*.temp
+*.bak
+*.swp
+*~*/

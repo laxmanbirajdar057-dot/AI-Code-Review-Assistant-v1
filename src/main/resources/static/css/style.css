@@ -222,6 +222,11 @@ button.full {
     border-radius: 999px;
 }
 
+.badge-critical {
+    background: #7f1d1d;
+    color: #fecaca;
+}
+
 .badge-high {
     background: var(--danger-bg);
     color: var(--danger);
@@ -235,6 +240,11 @@ button.full {
 .badge-low {
     background: var(--panel);
     color: var(--text-secondary);
+}
+
+.badge-info {
+    background: #eff6ff;
+    color: #2563eb;
 }
 
 .repo-icon {

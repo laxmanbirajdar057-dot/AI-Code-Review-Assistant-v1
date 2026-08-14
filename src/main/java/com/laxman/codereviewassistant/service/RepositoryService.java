@@ -51,19 +51,31 @@ public class RepositoryService {
         // Encrypted at rest with AES-256-GCM; decrypted only when needed to verify
         // an incoming webhook signature (see WebhookController).
         repo.setWebhookSecret(encryptionService.encrypt(request.getWebhookSecret()));
+
+        // GitHub token is optional (only needed for private repos) — encrypt it
+        // the same way if provided, otherwise leave it null.
+        if (request.getGithubToken() != null && !request.getGithubToken().isBlank()) {
+            repo.setGithubToken(encryptionService.encrypt(request.getGithubToken()));
+        }
+
         repo.setOwner(owner);
 
         Repository saved = repositoryRepository.save(repo);
 
-        return new RepoResponse(saved.getId(), saved.getRepoUrl(), buildWebhookUrl());
+        return toResponse(saved);
     }
 
     public List<RepoResponse> getMyRepos() {
         User owner = getCurrentUser();
 
         return repositoryRepository.findByOwner(owner).stream()
-                .map(r -> new RepoResponse(r.getId(), r.getRepoUrl(), buildWebhookUrl()))
+                .map(this::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    private RepoResponse toResponse(Repository repo) {
+        return new RepoResponse(repo.getId(), repo.getRepoUrl(), buildWebhookUrl(),
+                repo.getGithubToken() != null);
     }
 
     public void deleteRepo(Long id) {
